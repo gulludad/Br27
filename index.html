@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>GULLU Video Chat</title>
+  <style>
+    body { font-family: Arial, sans-serif; display:flex; flex-direction:column; align-items:center; padding:16px; }
+    header { margin:10px 0 20px; text-align:center; }
+    h1 { margin:0; font-size:28px; color:#1a1a1a; }
+    .controls { margin-bottom:12px; display:flex; gap:8px; flex-wrap:wrap; justify-content:center; }
+    input { padding:8px; font-size:16px; min-width:200px; }
+    button { padding:10px 14px; font-size:16px; cursor:pointer; border-radius:6px; border:1px solid #ccc; background:#f5f5f5; }
+    #jitsi-container { width:100%; max-width:980px; height:600px; margin-top:16px; border:1px solid #ddd; border-radius:8px; overflow:hidden; }
+    @media(max-width:600px){ #jitsi-container{height:420px;} h1{font-size:22px;} }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Welcome to GULLU Video Chat</h1>
+    <p style="margin:6px 0 0; color:#555;">Simple voice + video chat using Jitsi (free)</p>
+  </header>
+
+  <div class="controls">
+    <input id="roomName" placeholder="Room name (leave blank = random)" />
+    <button id="joinBtn">Start Call</button>
+    <button id="audioOnlyBtn">Start Voice-Only</button>
+    <button id="leaveBtn" disabled>Leave</button>
+  </div>
+
+  <div id="jitsi-container"></div>
+
+  <script>
+    const JITSI_SRC = "https://meet.jit.si/external_api.js?v=1&app=web";
+    let api = null;
+
+    function loadJitsiScript(callback){
+      if(window.JitsiMeetExternalAPI){ callback(); return; }
+      const s = document.createElement('script');
+      s.src = JITSI_SRC;
+      s.onload = callback;
+      s.onerror = ()=>alert("Jitsi script load failed — check internet.");
+      document.head.appendChild(s);
+    }
+
+    function randomRoom(){
+      return "gullu-room-" + Math.random().toString(36).slice(2,10);
+    }
+
+    function startConference({room, audioOnly=false}){
+      if(api) return;
+      const domain = "meet.jit.si";
+      const options = {
+        roomName: room,
+        parentNode: document.getElementById('jitsi-container'),
+        configOverwrite: {
+          startWithVideoMuted: audioOnly
+        },
+        userInfo: {
+          displayName: "GULLU"
+        }
+      };
+      api = new JitsiMeetExternalAPI(domain, options);
+      document.getElementById('leaveBtn').disabled = false;
+      api.addEventListener('videoConferenceLeft', () => { disposeConference(); });
+    }
+
+    function disposeConference(){
+      if(!api) return;
+      try { api.dispose(); } catch(e){}
+      api = null;
+      document.getElementById('jitsi-container').innerHTML = "";
+      document.getElementById('leaveBtn').disabled = true;
+    }
+
+    document.getElementById('joinBtn').addEventListener('click', ()=> {
+      loadJitsiScript(()=> {
+        const r = document.getElementById('roomName').value.trim() || randomRoom();
+        startConference({room: r, audioOnly:false});
+      });
+    });
+
+    document.getElementById('audioOnlyBtn').addEventListener('click', ()=> {
+      loadJitsiScript(()=> {
+        const r = document.getElementById('roomName').value.trim() || randomRoom();
+        startConference({room: r, audioOnly:true});
+      });
+    });
+
+    document.getElementById('leaveBtn').addEventListener('click', ()=>{ disposeConference(); });
+
+    document.getElementById('roomName').addEventListener('keydown', (e)=>{
+      if(e.key === 'Enter') document.getElementById('joinBtn').click();
+    });
+  </script>
+</body>
+</html>
