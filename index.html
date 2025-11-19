@@ -2,70 +2,53 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>GULLU VIDEO CHAT</title>
-
+  <title>GULLU VIDEO CALL</title>
   <style>
     body {
-      margin: 0;
-      background: #0f0f0f;
+      background: #111;
       color: white;
-      text-align: center;
       font-family: Arial;
+      text-align: center;
+      padding-top: 40px;
     }
-    header {
-      font-size: 32px;
-      padding: 20px;
-      color: #00eaff;
+    h1 {
+      color: #00e4ff;
+      font-size: 35px;
     }
     input {
-      padding: 10px;
-      width: 220px;
-      font-size: 18px;
-      border-radius: 6px;
+      padding: 12px;
+      width: 250px;
+      border-radius: 8px;
       border: none;
-      margin-top: 10px;
+      margin-top: 20px;
+      font-size: 18px;
     }
     button {
-      padding: 10px 20px;
-      background: #00eaff;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 18px;
-      font-weight: bold;
+      padding: 12px 20px;
       margin-left: 10px;
-    }
-    iframe {
-      width: 100%;
-      height: 85vh;
+      background: #00e4ff;
       border: none;
-      margin-top: 15px;
+      border-radius: 8px;
+      font-size: 18px;
+      cursor: pointer;
+      font-weight: bold;
     }
   </style>
 </head>
-
 <body>
 
-<header>✨ GULLU VIDEO CHAT (NO APPROVAL) ✨</header>
+<h1>✨ GULLU VIDEO CALL ✨</h1>
 
-<input id="roomCode" placeholder="Enter room code">
-<button onclick="join()">JOIN</button>
-
-<div id="callBox"></div>
+<input id="room" placeholder="Enter room code">
+<button onclick="start()">START CALL</button>
 
 <script>
-  function join() {
-    let code = document.getElementById("roomCode").value.trim();
-    if (!code) {
-      alert("Please enter a room code");
-      return;
-    }
+  function start() {
+    let code = document.getElementById("room").value.trim();
+    if (!code) return alert("Enter room code!");
 
-    // Daily.co meeting (NO APPROVAL, DIRECT CONNECT)
-    document.getElementById("callBox").innerHTML =
-      `<iframe allow="camera; microphone; fullscreen" 
-               src="https://gulluroombase.daily.co/${code}">
-       </iframe>`;
+    // Direct Jitsi Call Link (Works 100%)
+    window.open("https://meet.jit.si/" + code, "_blank");
   }
 </script>
 
