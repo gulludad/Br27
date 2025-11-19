@@ -8,68 +8,64 @@
     body {
       margin: 0;
       background: #0f0f0f;
-      font-family: Arial;
       color: white;
       text-align: center;
+      font-family: Arial;
     }
-
     header {
-      padding: 20px;
       font-size: 32px;
-      font-weight: bold;
+      padding: 20px;
       color: #00eaff;
     }
-
     input {
       padding: 10px;
-      font-size: 18px;
-      border-radius: 6px;
-      border: none;
       width: 220px;
-      text-align: center;
-    }
-
-    button {
-      padding: 10px 15px;
       font-size: 18px;
       border-radius: 6px;
       border: none;
+      margin-top: 10px;
+    }
+    button {
+      padding: 10px 20px;
       background: #00eaff;
-      color: black;
-      font-weight: bold;
+      border: none;
+      border-radius: 6px;
       cursor: pointer;
+      font-size: 18px;
+      font-weight: bold;
       margin-left: 10px;
+    }
+    iframe {
+      width: 100%;
+      height: 85vh;
+      border: none;
+      margin-top: 15px;
     }
   </style>
 </head>
 
 <body>
 
-<header>✨ GULLU VIDEO CHAT ✨</header>
+<header>✨ GULLU VIDEO CHAT (NO APPROVAL) ✨</header>
 
-<h3>Enter Room Code</h3>
-
-<input id="roomInput" placeholder="room123">
+<input id="roomCode" placeholder="Enter room code">
 <button onclick="join()">JOIN</button>
 
+<div id="callBox"></div>
+
 <script>
-  // If URL already has room → auto redirect to Jitsi
-  const urlParams = new URLSearchParams(window.location.search);
-  let room = urlParams.get("room");
-
-  if (room) {
-    window.location.href = "https://meet.jit.si/" + room;
-  }
-
   function join() {
-    const code = document.getElementById("roomInput").value.trim();
+    let code = document.getElementById("roomCode").value.trim();
     if (!code) {
-      alert("Please enter a room code!");
+      alert("Please enter a room code");
       return;
     }
 
-    // redirect to Jitsi full page (camera allowed)
-    window.location.href = "https://meet.jit.si/" + code;
+    // Daily.co meeting (NO APPROVAL, DIRECT CONNECT)
+    document.getElementById("callBox").innerHTML =
+      `<iframe allow="camera; microphone; fullscreen" 
+               src="https://gulluroombase.daily.co/${code}">
+       </iframe>`;
   }
 </script>
 
