@@ -2,278 +2,113 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>GULLU VIDEO CHAT v3</title>
+  <title>GULLU LIVE VIDEO CHAT</title>
 
-  <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.2/dist/peerjs.min.js"></script>
+  <script src="https://meet.jit.si/external_api.js"></script>
 
   <style>
     body {
       margin: 0;
+      font-family: Arial;
       background: #0f0f0f;
       color: white;
-      font-family: Arial;
     }
 
     header {
+      text-align: center;
       padding: 20px;
-      text-align: center;
-      font-size: 32px;
-      color: #00eaff;
+      font-size: 36px;
       font-weight: bold;
+      color: #00eaff;
     }
 
-    #video-area {
-      display: flex;
-      justify-content: center;
-      gap: 10px;
-      padding: 10px;
-    }
-
-    .videoBox {
-      width: 32%;
-      background: black;
-      border: 2px solid #00eaff;
-      border-radius: 10px;
-      position: relative;
-    }
-
-    .videoBox video {
-      width: 100%;
-      border-radius: 10px;
-    }
-
-    .nameTag {
-      position: absolute;
-      bottom: 5px;
-      left: 5px;
-      padding: 3px 8px;
-      background: rgba(0,0,0,0.6);
-      font-size: 14px;
-      border-radius: 5px;
-    }
-
-    #controls {
+    #joinBox {
       text-align: center;
-      margin-top: 10px;
+      margin-top: 20px;
+    }
+
+    input {
+      padding: 10px;
+      font-size: 18px;
+      border-radius: 6px;
+      border: none;
+      width: 200px;
+      text-align: center;
     }
 
     button {
       padding: 10px 15px;
-      margin: 5px;
+      font-size: 18px;
+      margin-left: 10px;
       border: none;
-      border-radius: 8px;
+      border-radius: 6px;
       background: #00eaff;
       color: black;
-      font-weight: bold;
       cursor: pointer;
+      font-weight: bold;
     }
 
-    #chatBox {
-      width: 300px;
-      height: 350px;
-      background: #1a1a1a;
-      position: fixed;
-      right: 10px;
-      bottom: 10px;
-      border-radius: 10px;
-      border: 2px solid #00eaff;
-      display: flex;
-      flex-direction: column;
+    #meet {
+      width: 100%;
+      height: 85vh;
+      display: none;
     }
-
-    #chatMessages {
-      flex: 1;
-      padding: 10px;
-      overflow-y: auto;
-      font-size: 14px;
-    }
-
-    #chatInput {
-      padding: 10px;
-      border: none;
-      outline: none;
-      width: 80%;
-      margin-left: 5px;
-      border-radius: 6px;
-      background: #333;
-      color: white;
-    }
-
-    #sendBtn {
-      width: 20%;
-      background: #00eaff;
-      border-radius: 6px;
-    }
-
   </style>
 </head>
 
 <body>
 
-<header>✨ GULLU PREMIUM VIDEO CHAT v3 ✨</header>
+<header>✨ GULLU VIDEO CHAT ✨</header>
 
-<div id="video-area">
-  <div class="videoBox">
-    <video id="myVideo" autoplay muted></video>
-    <div class="nameTag">You (GULLU)</div>
-  </div>
-
-  <div class="videoBox">
-    <video id="video1" autoplay></video>
-    <div class="nameTag" id="name1">Friend 1</div>
-  </div>
-
-  <div class="videoBox">
-    <video id="video2" autoplay></video>
-    <div class="nameTag" id="name2">Friend 2</div>
-  </div>
+<div id="joinBox">
+  <input id="roomInput" placeholder="Enter room code">
+  <button onclick="joinRoom()">JOIN</button>
 </div>
 
-<div id="controls">
-  <button onclick="copyRoomLink()">🔗 Copy Room Link</button>
-  <button onclick="shareScreen()">🖥 Screen Share</button>
-  <button onclick="toggleMic()">🎤 Mic</button>
-  <button onclick="toggleCam()">📷 Camera</button>
-  <button onclick="disconnectAll()">❌ Disconnect</button>
-</div>
-
-<!-- Chat Box -->
-<div id="chatBox">
-  <div id="chatMessages"></div>
-  <div style="display:flex;">
-    <input id="chatInput" placeholder="Type message...">
-    <button id="sendBtn" onclick="sendChat()">Send</button>
-  </div>
-</div>
+<div id="meet"></div>
 
 <script>
-  let myStream;
-  let activeCalls = [];
-  let dataConnections = [];
-  let peer;
-
-  // Auto Room Setup
   const urlParams = new URLSearchParams(window.location.search);
-  const ROOM_ID = urlParams.get("room") || Math.random().toString(36).substr(2, 9);
+  let room = urlParams.get("room");
 
-  if (!urlParams.get("room")) {
-    window.location.search = "room=" + ROOM_ID;
+  // If room exists in URL → Auto join
+  if (room) {
+    startMeeting(room);
   }
 
-  function copyRoomLink() {
-    navigator.clipboard.writeText(window.location.href);
-    alert("Room link copied! Send to friends.");
+  // User joins by typing code
+  function joinRoom() {
+    const code = document.getElementById("roomInput").value.trim();
+    if (code === "") {
+      alert("Please enter a room code!");
+      return;
+    }
+
+    window.location.search = "?room=" + code;
   }
 
-  // Initialize PeerJS
-  peer = new Peer(ROOM_ID + "_" + Math.floor(Math.random() * 10000));
+  // Start Jitsi
+  function startMeeting(roomName) {
+    document.getElementById("joinBox").style.display = "none";
+    document.getElementById("meet").style.display = "block";
 
-  peer.on("open", () => {
-    console.log("My Peer ID:", peer.id);
-  });
+    const domain = "meet.jit.si";
 
-  // Get Media
-  navigator.mediaDevices.getUserMedia({ video: true, audio: true })
-    .then(stream => {
-      myStream = stream;
-      document.getElementById("myVideo").srcObject = stream;
-
-      peer.on("call", call => {
-        call.answer(stream);
-        call.on("stream", remoteStream => assignVideo(remoteStream));
-        activeCalls.push(call);
-      });
-
-      peer.on("connection", conn => {
-        dataConnections.push(conn);
-        conn.on("data", msg => addChat("Friend", msg));
-      });
-
-    });
-
-  // Join all users in the room
-  setTimeout(() => {
-    fetchPeers();
-  }, 1500);
-
-  function fetchPeers() {
-    peer.listAllPeers(list => {
-      list.forEach(id => {
-        if (id !== peer.id && id.startsWith(ROOM_ID)) {
-          const call = peer.call(id, myStream);
-          call.on("stream", s => assignVideo(s));
-          activeCalls.push(call);
-
-          const conn = peer.connect(id);
-          dataConnections.push(conn);
-        }
-      });
-    });
-  }
-
-  function assignVideo(stream) {
-    const v1 = document.getElementById("video1");
-    const v2 = document.getElementById("video2");
-
-    if (!v1.srcObject) v1.srcObject = stream;
-    else if (!v2.srcObject) v2.srcObject = stream;
-  }
-
-  // Chat Feature
-  function sendChat() {
-    const msg = document.getElementById("chatInput").value;
-    if (!msg) return;
-
-    addChat("Me", msg);
-
-    dataConnections.forEach(c => c.send(msg));
-    document.getElementById("chatInput").value = "";
-  }
-
-  function addChat(name, msg) {
-    const box = document.getElementById("chatMessages");
-    box.innerHTML += `<div><b>${name}:</b> ${msg}</div>`;
-    box.scrollTop = box.scrollHeight;
-  }
-
-  // Screen Share
-  async function shareScreen() {
-    const screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true });
-
-    activeCalls.forEach(call => {
-      const sender = call.peerConnection.getSenders().find(s => s.track.kind === "video");
-      sender.replaceTrack(screenStream.getVideoTracks()[0]);
-    });
-
-    screenStream.getVideoTracks()[0].onended = () => {
-      const camTrack = myStream.getVideoTracks()[0];
-      activeCalls.forEach(call => {
-        const sender = call.peerConnection.getSenders().find(s => s.track.kind === "video");
-        sender.replaceTrack(camTrack);
-      });
+    const options = {
+      roomName: roomName,
+      parentNode: document.getElementById("meet"),
+      userInfo: { displayName: "GULLU" },
+      configOverwrite: { prejoinPageEnabled: false },
+      interfaceConfigOverwrite: {
+        MOBILE_APP_PROMO: false,
+        HIDE_PREJOIN_DISPLAY_NAME: true
+      }
     };
-  }
 
-  // Mic / Cam
-  function toggleMic() {
-    const audioTrack = myStream.getAudioTracks()[0];
-    audioTrack.enabled = !audioTrack.enabled;
-    alert("Mic: " + (audioTrack.enabled ? "ON" : "OFF"));
-  }
-
-  function toggleCam() {
-    const videoTrack = myStream.getVideoTracks()[0];
-    videoTrack.enabled = !videoTrack.enabled;
-    alert("Camera: " + (videoTrack.enabled ? "ON" : "OFF"));
-  }
-
-  // Disconnect
-  function disconnectAll() {
-    activeCalls.forEach(c => c.close());
-    alert("Disconnected!");
-    location.reload();
+    const api = new JitsiMeetExternalAPI(domain, options);
+    console.log("Joined Room:", roomName);
   }
 </script>
 
 </body>
-</html>    
+</html>
