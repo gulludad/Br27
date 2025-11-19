@@ -2,29 +2,22 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>GULLU LIVE VIDEO CHAT</title>
-
-  <script src="https://meet.jit.si/external_api.js"></script>
+  <title>GULLU VIDEO CHAT</title>
 
   <style>
     body {
       margin: 0;
-      font-family: Arial;
       background: #0f0f0f;
+      font-family: Arial;
       color: white;
+      text-align: center;
     }
 
     header {
-      text-align: center;
       padding: 20px;
-      font-size: 36px;
+      font-size: 32px;
       font-weight: bold;
       color: #00eaff;
-    }
-
-    #joinBox {
-      text-align: center;
-      margin-top: 20px;
     }
 
     input {
@@ -32,26 +25,20 @@
       font-size: 18px;
       border-radius: 6px;
       border: none;
-      width: 200px;
+      width: 220px;
       text-align: center;
     }
 
     button {
       padding: 10px 15px;
       font-size: 18px;
-      margin-left: 10px;
-      border: none;
       border-radius: 6px;
+      border: none;
       background: #00eaff;
       color: black;
-      cursor: pointer;
       font-weight: bold;
-    }
-
-    #meet {
-      width: 100%;
-      height: 85vh;
-      display: none;
+      cursor: pointer;
+      margin-left: 10px;
     }
   </style>
 </head>
@@ -60,53 +47,29 @@
 
 <header>✨ GULLU VIDEO CHAT ✨</header>
 
-<div id="joinBox">
-  <input id="roomInput" placeholder="Enter room code">
-  <button onclick="joinRoom()">JOIN</button>
-</div>
+<h3>Enter Room Code</h3>
 
-<div id="meet"></div>
+<input id="roomInput" placeholder="room123">
+<button onclick="join()">JOIN</button>
 
 <script>
+  // If URL already has room → auto redirect to Jitsi
   const urlParams = new URLSearchParams(window.location.search);
   let room = urlParams.get("room");
 
-  // If room exists in URL → Auto join
   if (room) {
-    startMeeting(room);
+    window.location.href = "https://meet.jit.si/" + room;
   }
 
-  // User joins by typing code
-  function joinRoom() {
+  function join() {
     const code = document.getElementById("roomInput").value.trim();
-    if (code === "") {
+    if (!code) {
       alert("Please enter a room code!");
       return;
     }
 
-    window.location.search = "?room=" + code;
-  }
-
-  // Start Jitsi
-  function startMeeting(roomName) {
-    document.getElementById("joinBox").style.display = "none";
-    document.getElementById("meet").style.display = "block";
-
-    const domain = "meet.jit.si";
-
-    const options = {
-      roomName: roomName,
-      parentNode: document.getElementById("meet"),
-      userInfo: { displayName: "GULLU" },
-      configOverwrite: { prejoinPageEnabled: false },
-      interfaceConfigOverwrite: {
-        MOBILE_APP_PROMO: false,
-        HIDE_PREJOIN_DISPLAY_NAME: true
-      }
-    };
-
-    const api = new JitsiMeetExternalAPI(domain, options);
-    console.log("Joined Room:", roomName);
+    // redirect to Jitsi full page (camera allowed)
+    window.location.href = "https://meet.jit.si/" + code;
   }
 </script>
 
